@@ -107,6 +107,54 @@ int fjfx_create_fmd_from_raw(
   return FJFX_SUCCESS;
 }
 
+// Minutiae Extraction interface
+int fjfx_create_fmd_from_fir(
+  const void *fir_image,
+  const unsigned int image_size,
+  const unsigned int dpi,
+  const unsigned int height,
+  const unsigned int width,
+  const unsigned int output_format,
+  void   *fmd,
+  unsigned int *size_of_fmd_ptr
+) {
+  if (fmd == NULL)       return FJFX_FAIL_EXTRACTION_UNSPEC;
+  if (fir_image == NULL) return FJFX_FAIL_EXTRACTION_BAD_IMP;
+  if (image_size <= 0)	 return FJFX_FAIL_EXTRACTION_BAD_IMP;
+  if (width > 2000 || height > 2000)                         return FJFX_FAIL_IMAGE_SIZE_NOT_SUP;
+  if (dpi < 300 || dpi > 1024)                               return FJFX_FAIL_IMAGE_SIZE_NOT_SUP;
+  if (width * 500 < 150 * dpi  || width * 500 > 812 * dpi)   return FJFX_FAIL_IMAGE_SIZE_NOT_SUP; // in range 0.3..1.62 in
+  if (height * 500 < 150 * dpi || height * 500 > 1000 * dpi) return FJFX_FAIL_IMAGE_SIZE_NOT_SUP; // in range 0.3..2.0 in
+  size_t size = size_of_fmd_ptr ? *size_of_fmd_ptr : FJFX_FMD_BUFFER_SIZE;
+  if (size < FJFX_FMD_BUFFER_SIZE)                           return FJFX_FAIL_OUTPUT_BUFFER_IS_TOO_SMALL;
+  FRFXLL_DATA_TYPE dt = 0;
+  switch (output_format) {
+    case FJFX_FMD_ANSI_378_2004:    dt = FRFXLL_DT_ANSI_FEATURE_SET; break;
+    case FJFX_FMD_ISO_19794_2_2005: dt = FRFXLL_DT_ISO_FEATURE_SET; break;
+    default:
+      return FJFX_FAIL_INVALID_OUTPUT_FORMAT;
+  }
+  dpHandle hContext, hFtrSet;
+  CheckFx( FRFXLLCreateLibraryContext(&hContext) );
+  switch ( FRFXLLCreateFeatureSet(hContext, reinterpret_cast<const unsigned char *>(fir_image), image_size, FRFXLL_DT_ISO_19794_4_SAMPLE, FRFXLL_FEX_ENABLE_ENHANCEMENT, &hFtrSet ) ) {
+    case FRFXLL_OK: 
+      break;
+    case FRFXLL_ERR_FB_TOO_SMALL_AREA:
+      return FJFX_FAIL_EXTRACTION_BAD_IMP;
+    default: 
+      return FJFX_FAIL_EXTRACTION_UNSPEC;
+  }
+  unsigned int dpcm = (dpi * 100 + 50) / 254;
+  const unsigned char finger_quality  = 60;  // Equivalent to NFIQ value 3 
+  const unsigned char finger_position = 0;   // Unknown finger
+  const unsigned char impression_type = 0;   // Live-scan plain
+  FRFXLL_OUTPUT_PARAM_ISO_ANSI param = {sizeof(FRFXLL_OUTPUT_PARAM_ISO_ANSI), CBEFF, finger_position, 0, dpcm, dpcm, width, height, 0, finger_quality, impression_type};
+  unsigned char * tmpl = reinterpret_cast<unsigned char *>(fmd);
+  CheckFx( FRFXLLExport(hFtrSet, dt, &param, tmpl, &size) );
+  if (size_of_fmd_ptr) *size_of_fmd_ptr = size;
+  return FJFX_SUCCESS;
+}
+
 // Misc functions
 int get_pid(unsigned int *feature_extractor) {
   *feature_extractor = CBEFF;

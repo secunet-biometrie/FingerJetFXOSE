@@ -86,6 +86,17 @@ int fjfx_create_fmd_from_raw(
   unsigned int *size_of_fmd_ptr               // Input: fmd buffer size. Output: actual size of the FMD.
 );
 
+// Minutiae Extraction interface
+int fjfx_create_fmd_from_fir(
+  const void *fir_image,                      // Input: ISO 19794-4 FIR image to convert.  The image must be grayscale (8 bits/pixel), no padding, bright field (dark fingerprint on white background), scan sequence consistent with ISO/IEC 19794-4:2005.
+  const unsigned int  pixel_resolution_dpi,   // Must be between 300 and 1024 dpi; the resolution must be the same for horizontal and vertical size (square pixels)
+  const unsigned int  height,                 // Height of the input image, in pixels. Physical height must be between 0.3 inches (7.62 mm) and 1.6 inches (40.6 mm)
+  const unsigned int  width,                  // Width of the input image, in pixels. Physical height must be between 0.3 inches (7.62 mm) and 1.5 inches (38.1 mm)
+  const unsigned int  output_fmd_data_format, // FJFX_FMD_ANSI_378_2004 or FJFX_FMD_ISO_19794_2_2005
+  void  *fmd,                                 // Where to store resulting fingerprint minutiae data (FMD)
+  unsigned int *size_of_fmd_ptr               // Input: fmd buffer size. Output: actual size of the FMD.
+);
+
 // Misc functions
 int fjfx_get_pid(unsigned int *feature_extractor); // Returns 2-byte vendor ID + 2-byte product ID.
                                                    // Standard biometric component identifier per CBEFF registry
