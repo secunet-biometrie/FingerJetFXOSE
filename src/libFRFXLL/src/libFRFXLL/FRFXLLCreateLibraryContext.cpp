@@ -28,6 +28,7 @@
       DATE:           11/08/2011
 */
 
+#include <windows.h>
 #include <stdlib.h>
 #include <time.h>
 #include <FRFXLL.h>
