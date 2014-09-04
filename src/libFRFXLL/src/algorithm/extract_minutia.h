@@ -195,8 +195,8 @@ namespace FeatureExtractionImpl {
     uint32              minimum_number_of_minutia;
     uint32              minimum_footprint_area;
     UserFeedbackParameters() 
-      : minimum_number_of_minutia(4)
-      , minimum_footprint_area(11000)
+      : minimum_number_of_minutia(0)
+      , minimum_footprint_area(0)
     {}
   };
   struct Parameters {

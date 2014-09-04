@@ -171,7 +171,7 @@ namespace Embedded {
         orientation_map_and_footprint<maxwidth, ori_scale>(width, size, img, true, ori, footprint);
       }
       freeman_phasemap<ori_scale>(width, size, img, ori, img);
-      top_n<Minutia> top_minutia(md.minutia, md.minutia + std::min(md.capacity(), size_t(68)));
+      top_n<Minutia> top_minutia(md.minutia, md.minutia + md.capacity());
       extract_minutia<maxwidth, ori_scale>(img, width, size, footprint, top_minutia, param);
       md.numMinutia = top_minutia.size();
       top_minutia.sort();
